@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.text.DecimalFormat;
 import java.util.UUID;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -45,11 +46,12 @@ public class PingAFK implements Listener {
         this.endTimes = new ConcurrentHashMap<UUID, Long>();
         this.afkTimes = new ConcurrentHashMap<UUID, Long>();
         this.manager = ProtocolLibrary.getProtocolManager();
-        this.maxAfkTime = 300000;
+        FileConfiguration config = this.plugin.getConfig();
+        this.maxAfkTime = config.getInt("maxAfkTime", 300000);
         this.interactCooldown = 5000;
-        this.doVanillaPing = false;
-        this.doAfk = true;
-        this.doUnits = true;
+        this.doVanillaPing = config.getBoolean("doVanillaPing", false);
+        this.doAfk = config.getBoolean("doAfk", true);
+        this.doUnits = config.getBoolean("doUnits", true);
 
         addListeners();
     }

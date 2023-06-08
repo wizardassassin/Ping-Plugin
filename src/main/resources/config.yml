@@ -1,0 +1,8 @@
+# Max time until the afk status shows
+maxAfkTime: 300000
+# If vanilla ping should be tacked along with keep_alive ping
+doVanillaPing: false
+# If the afk status should show
+doAfk: true
+# If the ping should have units
+doUnits: true

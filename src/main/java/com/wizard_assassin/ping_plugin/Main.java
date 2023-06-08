@@ -5,6 +5,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
     @Override
+    public void onLoad() {
+        this.getLogger().info("Loading...");
+        this.saveDefaultConfig();
+        this.reloadConfig();
+    }
+
+    @Override
     public void onEnable() {
         this.getLogger().info("Starting...");
 
