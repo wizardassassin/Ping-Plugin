@@ -30,9 +30,11 @@ public class PingAFK implements Listener {
     private Plugin plugin;
 
     private ConcurrentHashMap<UUID, Long> pingTimes;
+    private ConcurrentHashMap<UUID, Long> endTimes;
     private ConcurrentHashMap<UUID, Long> afkTimes;
     private ProtocolManager manager;
     private int maxAfkTime;
+    private int interactCooldown;
     private boolean doVanillaPing;
     private boolean doAfk;
     private boolean doUnits;
@@ -40,9 +42,11 @@ public class PingAFK implements Listener {
     public PingAFK(Plugin plugin) {
         this.plugin = plugin;
         this.pingTimes = new ConcurrentHashMap<UUID, Long>();
+        this.endTimes = new ConcurrentHashMap<UUID, Long>();
         this.afkTimes = new ConcurrentHashMap<UUID, Long>();
         this.manager = ProtocolLibrary.getProtocolManager();
         this.maxAfkTime = 300000;
+        this.interactCooldown = 5000;
         this.doVanillaPing = false;
         this.doAfk = true;
         this.doUnits = true;
@@ -98,6 +102,19 @@ public class PingAFK implements Listener {
         return new DecimalFormat("0").format(totalPing);
     }
 
+    public void updateTablist(Player player) {
+        UUID uuid = player.getUniqueId();
+        Long endPing = endTimes.get(uuid);
+        Double totalPing = (endPing - pingTimes.get(uuid)) / 1000000.0;
+        if (!player.isOnline()) {
+            PingAFK.this.plugin.getLogger().warning("Player is offline before main task.");
+            return;
+        }
+        Long lastAFK = afkTimes.get(uuid);
+        Boolean isAFK = (endPing - lastAFK) / 1000000 >= maxAfkTime;
+        tablistDisplay(player, totalPing, isAFK);
+    }
+
     public void addListeners() {
         PacketListener listenerServer = new PacketAdapter(plugin, ListenerPriority.NORMAL,
                 PacketType.Play.Server.KEEP_ALIVE) {
@@ -120,14 +137,8 @@ public class PingAFK implements Listener {
                 Long endPing = System.nanoTime();
                 Player player = event.getPlayer();
                 UUID uuid = player.getUniqueId();
-                Double totalPing = (endPing - pingTimes.get(uuid)) / 1000000.0;
-                if (!player.isOnline()) {
-                    PingAFK.this.plugin.getLogger().warning("Player is offline before main task.");
-                    return;
-                }
-                Long lastAFK = afkTimes.get(uuid);
-                Boolean isAFK = (endPing - lastAFK) / 1000000 >= maxAfkTime;
-                tablistDisplay(player, totalPing, isAFK);
+                endTimes.put(uuid, endPing);
+                updateTablist(player);
             }
         };
         manager.addPacketListener(listenerServer);
@@ -140,10 +151,15 @@ public class PingAFK implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         Long lLastMove = afkTimes.get(uuid);
-        if ((lastMove - lLastMove) / 1000000 < 5000) {
+        if ((lastMove - lLastMove) / 1000000 < interactCooldown) {
             return;
         }
         afkTimes.put(uuid, lastMove);
+        Long endPing = endTimes.get(uuid);
+        Boolean wasAFK = (endPing - lLastMove) / 1000000 >= maxAfkTime;
+        if (wasAFK) {
+            updateTablist(player);
+        }
     }
 
     @EventHandler
@@ -156,6 +172,7 @@ public class PingAFK implements Listener {
             return;
         }
         pingTimes.put(uuid, -1L);
+        endTimes.put(uuid, -1L);
         afkTimes.put(uuid, lastMove);
         tablistDisplay(player, -1D, false);
     }
@@ -165,6 +182,7 @@ public class PingAFK implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         pingTimes.remove(uuid);
+        endTimes.remove(uuid);
         afkTimes.remove(uuid);
     }
 }
