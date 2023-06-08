@@ -1,4 +1,4 @@
-package com.wizard_assassin;
+package com.wizard_assassin.ping_plugin;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.text.DecimalFormat;

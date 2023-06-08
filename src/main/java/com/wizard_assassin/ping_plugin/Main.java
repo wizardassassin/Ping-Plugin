@@ -1,4 +1,4 @@
-package com.wizard_assassin;
+package com.wizard_assassin.ping_plugin;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;

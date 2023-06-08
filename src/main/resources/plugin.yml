@@ -1,4 +1,4 @@
-main: com.wizard_assassin.Main
+main: com.wizard_assassin.ping_plugin.Main
 name: PingPlugin
 version: 1.0
 api-version: 1.19
